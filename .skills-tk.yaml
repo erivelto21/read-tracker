@@ -1,0 +1,7 @@
+skills:
+  - name: git-ops
+    repo: luizalabs
+    hash: 5a11c01e3243ac9f6dcc7712018b4abd39f75330
+    installedAt: 2026-05-26T17:12:19.186Z
+    targets:
+      - copilot

@@ -1,0 +1,15 @@
+# Copy this file to terraform.tfvars and fill in the values.
+# terraform.tfvars is gitignored — never commit secrets.
+
+api_key        = ""
+mongo_password = ""
+
+# Optional overrides (defaults are set in variables.tf)
+# region                 = "br-se1"
+# availability_zone      = "br-se1-c"
+# ssh_key_name           = "k8s-ssh-key-my-cluster-my-pool-46d68"
+# vpc_id                 = "8dd43656-145b-4b9c-94f5-f2d3211d74ab"
+# subnet_id              = "df8d100a-0dd2-46ad-baae-bba788975587"
+# mongodb_private_ip     = "172.18.34.72"
+# mongodb_allowed_source = "172.18.32.0/20"
+# mongodb_reserved_public_ip_id = "7b555df7-faec-47d7-8d8b-a268d41d1467"

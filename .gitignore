@@ -1,0 +1,33 @@
+.env
+dump/
+
+# Terraform — local variable overrides (never commit secrets)
+deploy/terraform/terraform.tfvars
+deploy/terraform/*.tfvars
+deploy/terraform/.terraform/
+deploy/terraform/terraform.tfstate
+deploy/terraform/terraform.tfstate.backup
+deploy/terraform/*.tfstate.*
+
+# Binaries
+nightcrawler/nightcrawler
+tracker/tracker
+
+# Helm secret values (plaintext) — encrypted version is committed via SOPS
+# deploy/helm/tracker/values.secret.yaml is committed encrypted; ignore only local plaintext overrides
+deploy/helm/tracker/values.secret.yaml
+
+# Frontend (front/)
+front/node_modules/
+front/dist/
+front/dist-ssr/
+front/.vite/
+front/*.tsbuildinfo
+front/coverage/
+front/test-results/
+front/playwright-report/
+front/blob-report/
+front/playwright/.cache/
+front/public/mockServiceWorker.js
+front/.env.local
+front/.env.*.local

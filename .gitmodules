@@ -1,0 +1,12 @@
+[submodule "tracker"]
+	path = tracker
+	url = git@github.com:erivelto21/read-tracker-tracker.git
+	branch = main
+[submodule "front"]
+	path = front
+	url = git@github.com:erivelto21/read-tracker-front.git
+	branch = main
+[submodule "nightcrawler"]
+	path = nightcrawler
+	url = git@github.com:erivelto21/read-tracker-nightcrawler.git
+	branch = main

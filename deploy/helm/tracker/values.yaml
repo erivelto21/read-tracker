@@ -1,0 +1,41 @@
+namespace: read-tracker
+
+image:
+  repository: container-registry.br-se1.magalu.cloud/my-register/read-tracker
+  tag: latest
+  # pullPolicy: IfNotPresent
+
+api:
+  replicas: 2
+  port: 8080
+
+mongodb:
+  image: mongo:6.0
+  storage: 10Gi
+  external:
+    # Set to true to use an external VM-hosted MongoDB instead of the in-cluster StatefulSet.
+    # When enabled, the Service becomes ExternalName pointing to `host` via MGC internal DNS.
+    enabled: false
+    host: "mongodb-study"
+
+nginx:
+  image: nginx:1.25
+  replicas: 1
+  rateLimit:
+    zone: api
+    rate: 10r/s
+    burst: 20
+
+front:
+  image:
+    repository: container-registry.br-se1.magalu.cloud/my-register/read-tracker-front
+    tag: latest
+  replicas: 1
+  port: 80
+
+# Secret values — leave empty here; provide via values.secret.yaml (gitignored)
+secrets:
+  mongodbUri: ""
+  dbName: "read_tracker"
+  nginx:
+    htpasswd: ""

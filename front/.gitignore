@@ -1,0 +1,6 @@
+coverage/
+dist/
+playwright-report/
+test-results/
+tsconfig.tsbuildinfo
+node_modules/

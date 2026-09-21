@@ -1,0 +1,28 @@
+# Ignore VCS
+.git
+.gitignore
+
+# Build artifacts and editor directories
+bin
+out
+dist
+coverage
+*.log
+*.tmp
+
+# IDE/editor files
+.vscode
+.idea
+
+# Node/other deps
+node_modules
+
+# Docker files
+Dockerfile*
+.dockerignore
+
+# OS files
+.DS_Store
+
+# Don't exclude the tracker source
+!tracker/

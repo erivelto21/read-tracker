@@ -1,0 +1,42 @@
+{{- if not .Values.mongodb.external.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "tracker.labels" . | nindent 4 }}
+spec:
+  serviceName: "mongo"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+        - name: mongo
+          image: {{ .Values.mongodb.image | quote }}
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: read-tracker-secrets
+                  key: db_name
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.mongodb.storage }}
+{{- end }}

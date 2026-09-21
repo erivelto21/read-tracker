@@ -1,0 +1,43 @@
+# Multi-stage Dockerfile for read-tracker API
+# Builds the Go binary from tracker/cmd/api and produces a small runtime image
+
+FROM golang:1.25-alpine AS builder
+# git is needed to fetch some modules
+RUN apk add --no-cache git
+
+WORKDIR /src
+# Copy go.mod and go.sum first to leverage Docker layer cache for dependencies
+COPY tracker/go.mod tracker/go.sum /src/tracker/
+WORKDIR /src/tracker
+# Download modules (cached unless go.mod/go.sum change)
+RUN go mod download
+
+# Copy the source code
+COPY tracker/ /src/tracker/
+WORKDIR /src/tracker/cmd/api
+# Build a static binary
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w" -o /out/read-tracker
+
+
+FROM alpine:3.18 AS runtime
+LABEL org.opencontainers.image.title="read-tracker" \
+      org.opencontainers.image.description="API for tracking reading progress" \
+      org.opencontainers.image.version="1.0" \
+      org.opencontainers.image.authors="erivelto" \
+      org.opencontainers.image.url="https://github.com/erivelto/read-tracker"
+
+# Install certs and curl (used by HEALTHCHECK), create a non-root user
+RUN apk add --no-cache ca-certificates curl && \
+    addgroup -S app && adduser -S app -G app
+
+WORKDIR /app
+COPY --from=builder /out/read-tracker /app/read-tracker
+RUN chown app:app /app/read-tracker
+
+# Run as non-root for better security
+USER app
+
+EXPOSE 8080
+ENV PORT=8080
+
+CMD ["./read-tracker"]
