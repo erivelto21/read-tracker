@@ -10,13 +10,12 @@ api:
   port: 8080
 
 mongodb:
+  # if true, provisions an in-cluster MongoDB (StatefulSet + Service).
+  # if false, nothing is created — the api connects via secrets.mongodbUri
+  # (e.g. to an external VM-hosted MongoDB).
+  enabled: false
   image: mongo:6.0
   storage: 10Gi
-  external:
-    # Set to true to use an external VM-hosted MongoDB instead of the in-cluster StatefulSet.
-    # When enabled, the Service becomes ExternalName pointing to `host` via MGC internal DNS.
-    enabled: false
-    host: "mongodb-study"
 
 # Secret values — leave empty here; provide via values.secret.yaml (SOPS-encrypted, gitignored)
 secrets:

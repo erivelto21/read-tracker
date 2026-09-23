@@ -1,3 +1,4 @@
+{{- if .Values.mongodb.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -7,17 +8,10 @@ metadata:
     app: mongo
     {{- include "api.labels" . | nindent 4 }}
 spec:
-  {{- if .Values.mongodb.external.enabled }}
-  type: ExternalName
-  externalName: {{ .Values.mongodb.external.host }}
-  ports:
-    - port: 27017
-      targetPort: 27017
-  {{- else }}
   clusterIP: None
   selector:
     app: mongo
   ports:
     - port: 27017
       targetPort: 27017
-  {{- end }}
+{{- end }}
