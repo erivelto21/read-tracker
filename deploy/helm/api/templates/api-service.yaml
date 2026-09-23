@@ -1,14 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: read-tracker
+  name: {{ .Release.Name }}
   namespace: {{ .Values.namespace }}
   labels:
-    {{- include "tracker.labels" . | nindent 4 }}
+    app: {{ .Release.Name }}
+    {{- include "api.labels" . | nindent 4 }}
 spec:
   type: ClusterIP
   selector:
-    app: read-tracker
+    app: {{ .Release.Name }}
   ports:
     - name: http
       port: {{ .Values.api.port }}

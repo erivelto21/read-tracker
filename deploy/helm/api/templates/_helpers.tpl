@@ -1,7 +1,7 @@
 {{/*
 Common labels applied to all resources.
 */}}
-{{- define "tracker.labels" -}}
+{{- define "api.labels" -}}
 app.kubernetes.io/name: {{ .Chart.Name }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}

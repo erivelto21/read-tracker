@@ -1,26 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx
+  name: {{ .Release.Name }}
   namespace: {{ .Values.namespace }}
   labels:
-    app: nginx
-    {{- include "tracker.labels" . | nindent 4 }}
+    app: {{ .Release.Name }}
+    {{- include "front.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.nginx.replicas }}
   selector:
     matchLabels:
-      app: nginx
+      app: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: nginx
+        app: {{ .Release.Name }}
     spec:
       imagePullSecrets:
         - name: magalu-registry-secret
       containers:
-        - name: nginx
-          image: "{{ .Values.front.image.repository }}:{{ .Values.front.image.tag }}"
+        - name: {{ .Release.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 80
           volumeMounts:
@@ -36,7 +37,7 @@ spec:
       volumes:
         - name: nginx-config
           configMap:
-            name: nginx-config
+            name: {{ .Release.Name }}-config
             items:
               - key: default.conf
                 path: default.conf
@@ -44,4 +45,4 @@ spec:
                 path: rate_limit.conf
         - name: nginx-htpasswd
           secret:
-            secretName: nginx-htpasswd
+            secretName: {{ .Release.Name }}-htpasswd

@@ -12,11 +12,13 @@ CRAWLER_REMOTE = $(REGISTRY)/$(NAMESPACE)/$(CRAWLER_IMAGE)
 FRONT_REMOTE   = $(REGISTRY)/$(NAMESPACE)/$(FRONT_IMAGE)
 
 # ── Cluster / Helm ─────────────────────────────────────────────────────────────
-KIND_CLUSTER    = my-k8s-local-lab
-HELM_CHART      = ./deploy/helm/tracker
-HELM_RELEASE    = tracker
-HELM_NAMESPACE  = read-tracker
-KUBE_CONTEXT    = kube-user@my-cluster
+KIND_CLUSTER        = my-k8s-local-lab
+API_HELM_CHART      = ./deploy/helm/api
+FRONT_HELM_CHART    = ./deploy/helm/front
+API_HELM_RELEASE    = read-tracker-api
+FRONT_HELM_RELEASE  = read-tracker-front
+HELM_NAMESPACE      = read-tracker
+KUBE_CONTEXT        = kube-user@my-cluster
 
 .PHONY: publish-all registry-login \
         build-api  load-api  push-api  \
@@ -85,16 +87,27 @@ push-front: build-front registry-login
 use-context:
 	kubectl config use-context $(KUBE_CONTEXT)
 
-## deploy-cluster: install / upgrade the Helm release in the cluster
-deploy-cluster: use-context
-	helm secrets upgrade --install $(HELM_RELEASE) $(HELM_CHART) \
+## deploy-cluster: install / upgrade both Helm releases in the cluster
+deploy-cluster: deploy-cluster-api deploy-cluster-front
+
+## deploy-cluster-api: install / upgrade the API Helm release
+deploy-cluster-api: use-context
+	helm secrets upgrade --install $(API_HELM_RELEASE) $(API_HELM_CHART) \
 		--namespace $(HELM_NAMESPACE) \
 		--create-namespace \
-		-f $(HELM_CHART)/values.secret.yaml
+		-f $(API_HELM_CHART)/values.secret.yaml
 
-## helm-down: uninstall the Helm release from the cluster
+## deploy-cluster-front: install / upgrade the Front Helm release
+deploy-cluster-front: use-context
+	helm secrets upgrade --install $(FRONT_HELM_RELEASE) $(FRONT_HELM_CHART) \
+		--namespace $(HELM_NAMESPACE) \
+		--create-namespace \
+		-f $(FRONT_HELM_CHART)/values.secret.yaml
+
+## helm-down: uninstall both Helm releases from the cluster
 helm-down: use-context
-	helm uninstall $(HELM_RELEASE) --namespace $(HELM_NAMESPACE)
+	helm uninstall $(API_HELM_RELEASE) --namespace $(HELM_NAMESPACE) || true
+	helm uninstall $(FRONT_HELM_RELEASE) --namespace $(HELM_NAMESPACE) || true
 
 # ── Terraform ─────────────────────────────────────────────────────────────────
 MONGODBVM_TERRAFORM_DIR = ./deploy/terraform/mongodbvm

@@ -13,9 +13,8 @@ deploy/terraform/*.tfstate.*
 nightcrawler/nightcrawler
 tracker/tracker
 
-# Helm secret values (plaintext) — encrypted version is committed via SOPS
-# deploy/helm/tracker/values.secret.yaml is committed encrypted; ignore only local plaintext overrides
-deploy/helm/tracker/values.secret.yaml
+# Helm secret values (SOPS-encrypted locally, never tracked; delivered to CI via values_file_b64 secret)
+deploy/helm/**/values.secret.yaml
 
 # Frontend (front/)
 front/node_modules/

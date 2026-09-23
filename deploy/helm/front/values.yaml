@@ -1,0 +1,22 @@
+namespace: read-tracker
+
+image:
+  repository: container-registry.br-se1.magalu.cloud/my-register/read-tracker-front
+  tag: latest
+  # pullPolicy: IfNotPresent
+
+nginx:
+  replicas: 1
+  rateLimit:
+    zone: front
+    rate: 10r/s
+    burst: 20
+
+# API backend this nginx proxies /api/ to (ClusterIP Service from the api chart)
+api:
+  host: read-tracker-api
+  port: 8080
+
+# Secret values — leave empty here; provide via values.secret.yaml (SOPS-encrypted, gitignored)
+secrets:
+  htpasswd: ""

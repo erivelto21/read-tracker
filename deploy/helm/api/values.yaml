@@ -18,24 +18,7 @@ mongodb:
     enabled: false
     host: "mongodb-study"
 
-nginx:
-  image: nginx:1.25
-  replicas: 1
-  rateLimit:
-    zone: api
-    rate: 10r/s
-    burst: 20
-
-front:
-  image:
-    repository: container-registry.br-se1.magalu.cloud/my-register/read-tracker-front
-    tag: latest
-  replicas: 1
-  port: 80
-
-# Secret values — leave empty here; provide via values.secret.yaml (gitignored)
+# Secret values — leave empty here; provide via values.secret.yaml (SOPS-encrypted, gitignored)
 secrets:
   mongodbUri: ""
   dbName: "read_tracker"
-  nginx:
-    htpasswd: ""

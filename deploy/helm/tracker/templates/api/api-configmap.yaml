@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: read-tracker-config
-  namespace: {{ .Values.namespace }}
-  labels:
-    {{- include "tracker.labels" . | nindent 4 }}
-data:
-  PORT: {{ .Values.api.port | quote }}

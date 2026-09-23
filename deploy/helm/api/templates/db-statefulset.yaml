@@ -5,7 +5,7 @@ metadata:
   name: mongo
   namespace: {{ .Values.namespace }}
   labels:
-    {{- include "tracker.labels" . | nindent 4 }}
+    {{- include "api.labels" . | nindent 4 }}
 spec:
   serviceName: "mongo"
   replicas: 1
@@ -26,7 +26,7 @@ spec:
             - name: MONGO_INITDB_DATABASE
               valueFrom:
                 secretKeyRef:
-                  name: read-tracker-secrets
+                  name: {{ .Release.Name }}-secrets
                   key: db_name
           volumeMounts:
             - name: mongo-data

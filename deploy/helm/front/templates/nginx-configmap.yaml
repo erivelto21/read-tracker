@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: nginx-config
+  name: {{ .Release.Name }}-config
   namespace: {{ .Values.namespace }}
   labels:
-    {{- include "tracker.labels" . | nindent 4 }}
+    {{- include "front.labels" . | nindent 4 }}
 data:
   rate_limit.conf: |
     limit_req_zone $binary_remote_addr zone={{ .Values.nginx.rateLimit.zone }}:10m rate={{ .Values.nginx.rateLimit.rate }};
@@ -24,7 +24,7 @@ data:
       location /api/ {
         limit_req zone={{ .Values.nginx.rateLimit.zone }} burst={{ .Values.nginx.rateLimit.burst }} nodelay;
 
-        proxy_pass http://read-tracker:{{ .Values.api.port }}/;
+        proxy_pass http://{{ .Values.api.host }}:{{ .Values.api.port }}/;
         proxy_buffering off;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

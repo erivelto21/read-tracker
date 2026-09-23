@@ -118,9 +118,14 @@ Run the API tests:
 make -C tracker test
 ```
 
-## Helm Chart
+## Helm Charts
 
-The Helm chart lives at `deploy/helm/tracker`. Secret values are encrypted with [SOPS](https://github.com/getsops/sops) + [age](https://github.com/FiloSottile/age) and committed to the repository as `deploy/helm/tracker/values.secret.yaml`.
+The project has two Helm charts, one per workload:
+
+- `deploy/helm/api` — backend API and its MongoDB (`read-tracker-api` release)
+- `deploy/helm/front` — frontend nginx reverse proxy (`read-tracker-front` release)
+
+Secret values are encrypted with [SOPS](https://github.com/getsops/sops) + [age](https://github.com/FiloSottile/age) in `deploy/helm/<chart>/values.secret.yaml`. These files are gitignored (never tracked) and delivered to CI via the `values_file_b64` secret.
 
 ### Prerequisites
 
@@ -156,13 +161,15 @@ age-keygen -o ~/.config/sops/age/keys.txt
 **Edit secrets** (opens decrypted in `$EDITOR`, saves re-encrypted):
 
 ```bash
-sops deploy/helm/tracker/values.secret.yaml
+sops deploy/helm/api/values.secret.yaml        # API secrets (MongoDB URI, DB name)
+sops deploy/helm/front/values.secret.yaml      # Front secrets (nginx htpasswd)
 ```
 
 **View decrypted content without editing:**
 
 ```bash
-sops --decrypt deploy/helm/tracker/values.secret.yaml
+sops --decrypt deploy/helm/api/values.secret.yaml
+sops --decrypt deploy/helm/front/values.secret.yaml
 ```
 
 **Encrypt a new `*.secret.yaml` file from scratch:**

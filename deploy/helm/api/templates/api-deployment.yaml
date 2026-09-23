@@ -1,40 +1,40 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: read-tracker
+  name: {{ .Release.Name }}
   namespace: {{ .Values.namespace }}
   labels:
-    app: read-tracker
-    {{- include "tracker.labels" . | nindent 4 }}
+    app: {{ .Release.Name }}
+    {{- include "api.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.api.replicas }}
   selector:
     matchLabels:
-      app: read-tracker
+      app: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: read-tracker
+        app: {{ .Release.Name }}
     spec:
       imagePullSecrets:
         - name: magalu-registry-secret
       containers:
-        - name: read-tracker
+        - name: {{ .Release.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.api.port }}
           envFrom:
             - configMapRef:
-                name: read-tracker-config
+                name: {{ .Release.Name }}-config
           env:
             - name: MONGO_URI
               valueFrom:
                 secretKeyRef:
-                  name: read-tracker-secrets
+                  name: {{ .Release.Name }}-secrets
                   key: mongodb_uri
             - name: DB_NAME
               valueFrom:
                 secretKeyRef:
-                  name: read-tracker-secrets
+                  name: {{ .Release.Name }}-secrets
                   key: db_name
