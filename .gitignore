@@ -16,6 +16,10 @@ tracker/tracker
 # Helm secret values (SOPS-encrypted locally, never tracked; delivered to CI via values_file_b64 secret)
 deploy/helm/**/values.secret.yaml
 
+# Single-VM deployment secrets (SOPS-encrypted, never tracked)
+deploy/compose/.env.secret.yaml
+deploy/compose/.env
+
 # Frontend (front/)
 front/node_modules/
 front/dist/

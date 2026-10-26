@@ -29,6 +29,8 @@ KUBE_CONTEXT        = kube-user@my-cluster
         tf-mongodbvm-apply tf-mongodbvm-destroy \
         tf-k8s-apply tf-k8s-destroy \
         tf-apply tf-destroy \
+        tf-app-vm-apply tf-app-vm-destroy app-vm-deploy app-vm-mongo-restore \
+        push-api-sha push-front-sha \
         use-context
 
 # ── Publish all ────────────────────────────────────────────────────────────────
@@ -142,6 +144,39 @@ tf-apply:
 tf-destroy:
 	$(MAKE) tf-mongodbvm-destroy
 	$(MAKE) tf-k8s-destroy
+
+# ── Application VM (single-VM production) ─────────────────────────────────────
+APP_VM_TERRAFORM_DIR = ./deploy/terraform/app-vm
+SHA                  = $(shell git rev-parse --short HEAD)
+
+## tf-app-vm-apply: provision the application VM stack (requires deploy/terraform/app-vm/terraform.tfvars)
+tf-app-vm-apply:
+	terraform -chdir=$(APP_VM_TERRAFORM_DIR) init -upgrade
+	terraform -chdir=$(APP_VM_TERRAFORM_DIR) apply
+
+## tf-app-vm-destroy: tear down the application VM stack
+tf-app-vm-destroy:
+	terraform -chdir=$(APP_VM_TERRAFORM_DIR) destroy
+
+## app-vm-deploy: deliver SOPS secrets over SSH and start the production workload
+app-vm-deploy:
+	./scripts/app-vm-deploy.sh
+
+## app-vm-mongo-restore: restore a MongoDB dump into the VM's MongoDB container
+app-vm-mongo-restore:
+	./scripts/app-vm-mongo-restore.sh
+
+## push-api-sha: build and push the API image tagged with the short commit SHA
+push-api-sha: build-api registry-login
+	docker tag $(API_IMAGE) $(REGISTRY)/$(NAMESPACE)/read-tracker:$(SHA)
+	docker push $(REGISTRY)/$(NAMESPACE)/read-tracker:$(SHA)
+	@echo "Pushed $(REGISTRY)/$(NAMESPACE)/read-tracker:$(SHA) — set API_TAG=$(SHA)"
+
+## push-front-sha: build and push the front image tagged with the short commit SHA
+push-front-sha: build-front registry-login
+	docker tag $(FRONT_IMAGE) $(REGISTRY)/$(NAMESPACE)/read-tracker-front:$(SHA)
+	docker push $(REGISTRY)/$(NAMESPACE)/read-tracker-front:$(SHA)
+	@echo "Pushed $(REGISTRY)/$(NAMESPACE)/read-tracker-front:$(SHA) — set FRONT_TAG=$(SHA)"
 
 # ── Deprecated (raw kubectl manifests) ────────────────────────────────────────
 # DEPRECATED: use deploy-cluster / helm-down instead
