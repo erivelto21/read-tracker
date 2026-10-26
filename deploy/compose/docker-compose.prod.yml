@@ -1,0 +1,56 @@
+# Production deployment of the read-tracker stack on a single VM.
+#
+# Only the frontend nginx publishes a port. The API and MongoDB live on the
+# internal network and are unreachable from outside the VM.
+#
+# Configuration and secrets come from the environment file rendered by
+# scripts/app-vm-deploy.sh — this file carries no secret values.
+
+name: read-tracker
+
+services:
+  front:
+    image: ${REGISTRY}/${REGISTRY_NAMESPACE}/read-tracker-front:${FRONT_TAG}
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/rate_limit.conf:/etc/nginx/conf.d/rate_limit.conf:ro
+      - ./nginx/.htpasswd:/etc/nginx/auth/.htpasswd:ro
+    depends_on:
+      - api
+    networks:
+      - internal
+    mem_limit: 256m
+
+  api:
+    image: ${REGISTRY}/${REGISTRY_NAMESPACE}/read-tracker:${API_TAG}
+    restart: unless-stopped
+    environment:
+      MONGO_URI: ${MONGO_URI}
+      DB_NAME: ${DB_NAME}
+      PORT: ${API_PORT}
+    depends_on:
+      - mongodb
+    networks:
+      - internal
+    mem_limit: 512m
+
+  mongodb:
+    image: mongo:8.0
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DB_NAME}
+    volumes:
+      - /srv/read-tracker/mongodb:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - internal
+    mem_limit: 2g
+
+networks:
+  internal:
+    driver: bridge

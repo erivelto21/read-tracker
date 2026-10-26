@@ -1,0 +1,27 @@
+# Copy this file to terraform.tfvars and fill in the values.
+# terraform.tfvars is gitignored — never commit secrets.
+
+api_key = ""
+
+# SSH access mirrors the MongoDB VM: same key, same open CIDR.
+# Both have defaults (ssh_key_name = "my-study-key", ssh_allowed_cidr = "0.0.0.0/0"),
+# so override them here only if you want to narrow access.
+# ssh_key_name     = "my-study-key"
+# ssh_allowed_cidr = "203.0.113.10/32"
+
+# Optional overrides (defaults are set in variables.tf)
+# region             = "br-se1"
+# availability_zone  = "br-se1-c"
+# vm_name            = "read-tracker-app"
+# machine_type       = "BV2-2-40"
+# vm_image           = "cloud-ubuntu-24.04 LTS"
+
+# Networking — keep the subnetpool distinct from the Kubernetes cluster VPC CIDR
+# subnetpool_cidr    = "172.20.0.0/16"
+# subnet_cidr_block  = "172.20.0.0/24"
+# private_ip         = "172.20.0.10"
+# http_allowed_cidr  = "0.0.0.0/0"
+
+# Persistent data volume
+# data_volume_size   = 20
+# data_volume_type   = "cloud_nvme1k"

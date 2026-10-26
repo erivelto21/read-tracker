@@ -32,8 +32,10 @@ read-tracker/
 │   │   ├── Dockerfile.crawler
 │   │   └── Dockerfile.front
 │   ├── helm/          # Helm chart(s)
+│   ├── compose/       # Single-VM production deployment (Docker Compose)
 │   ├── old-k8s/       # Legacy kubectl manifests (deprecated)
 │   └── terraform/     # Terraform stacks for MGC infrastructure
+│       ├── app-vm/       # Single application VM (production)
 │       ├── k8s-cluster/
 │       └── mongodbvm/
 ├── openspec/          # Architecture specs and change 
@@ -97,6 +99,69 @@ git submodule update --init --recursive
 | `make tf-k8s-destroy` | Tear down the MGC Kubernetes cluster Terraform stack |
 | `make tf-apply` | Provision both Terraform stacks in dependency order (`k8s` then `mongodbvm`) |
 | `make tf-destroy` | Tear down both Terraform stacks in dependency order (`mongodbvm` then `k8s`) |
+| `make tf-app-vm-apply` | Provision the single application VM stack (production) |
+| `make tf-app-vm-destroy` | Tear down the single application VM stack |
+| `make app-vm-deploy` | Deliver secrets over SSH and start the production Compose workload |
+| `make app-vm-mongo-restore` | Restore a MongoDB dump into the VM's MongoDB container |
+| `make push-api-sha` | Build and push the API image tagged with the short commit SHA |
+| `make push-front-sha` | Build and push the front image tagged with the short commit SHA |
+
+## Single-VM Production Deployment
+
+Production runs the front, API, and MongoDB workloads on a single Magalu Cloud VM
+using Docker Compose, instead of the managed Kubernetes cluster. This path is
+**additive**: the Helm charts, `deploy/terraform/k8s-cluster/`, and
+`deploy/terraform/mongodbvm/` remain valid and unmodified, so the migration is
+reversible until the cluster is switched off.
+
+Only the frontend nginx publishes a port. The API and MongoDB are reachable only
+over the internal Compose network.
+
+### Prerequisites
+
+- Magalu Cloud API key and an SSH key registered in MGC
+- `terraform`, `docker`, `sops`, and the `age` key used by `.sops.yaml`
+- A populated `deploy/terraform/app-vm/terraform.tfvars` (see `terraform.tfvars.example`)
+
+### Deploy
+
+```bash
+# 1. Provision the VM (no secret is required at this phase)
+make tf-app-vm-apply
+
+# 2. Build and push images tagged with the current commit SHA
+make push-api-sha
+make push-front-sha
+
+# 3. Create and encrypt the secret file, then deploy
+cp deploy/compose/.env.secret.example.yaml deploy/compose/.env.secret.yaml
+sops deploy/compose/.env.secret.yaml
+
+export API_TAG=$(git rev-parse --short HEAD)
+export FRONT_TAG=$(git rev-parse --short HEAD)
+make app-vm-deploy
+```
+
+Image tags are always an explicit commit SHA — never `latest` — so an image pull
+cannot silently change what production runs.
+
+### Restore MongoDB data
+
+```bash
+make app-vm-mongo-restore
+# or: ./scripts/app-vm-mongo-restore.sh /path/to/archive.gz
+```
+
+The restore runs `mongorestore` inside the MongoDB container via `docker exec`, so
+port `27017` is never published on the host or opened in the security group.
+
+### Known gaps
+
+- **TLS is not configured.** Production serves HTTP with Basic Auth, matching the
+  previous cluster deployment. Credentials are transmitted base64-encoded, not
+  encrypted. TLS is a deliberate follow-up.
+- **No scheduled MongoDB backups.** The single VM is a total single point of
+  failure; a host failure loses all data.
 
 ## Local Development
 
