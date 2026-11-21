@@ -10,6 +10,13 @@ A monorepo for tracking reading progress and fetching new chapters.
 - [ ] Create the GitLab as a Kubernetes resource.
 - [ ] Structure a pipeline for each workload.
 - [ ] Implement the crawler.
+- [ ] Transform Chapter *int into float64 at tracker.  
+- [ ] Includes the field "selector" string in the titles.
+- [ ] Transform the name in the link value, to make easily the access.
+- [ ] Implements the integration with discord.
+- [ ] Handle duplicated code between submodules.
+- [ ] Create test, readme, etc for tracker.
+- [ ] Transform crawler in a submodule.
 
 ## Workloads
 
