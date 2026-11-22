@@ -22,7 +22,7 @@ type Runner struct {
 
 func (r Runner) Run() {
 	sources := []source{
-		{name: "Swordmaster's Youngest Son", url: "", selector: "#chapters-list li a"},
+		{name: "Swordmaster's Youngest Son", url: "", selector: ".font-medium.transition-colors.text-white.group-hover\\:text-\\[\\#913FE2\\]"},
 		{name: "The Hero Returns", url: "", selector: "#chapters-list li a"},
 	}
 	var wg sync.WaitGroup
@@ -90,17 +90,38 @@ func extractChapters(source source, wg *sync.WaitGroup, ch chan<- result) {
 }
 
 func fetchPage(url string) *goquery.Document {
-	resp, err := http.Get(url)
+	client := &http.Client{}
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		log.Printf("Error creating request: %v", err)
+		return nil
+	}
+
+	req.Header.Set("Accept",
+		"text/html,application/xhtml+xml,application/xml;q=0.9,image/jxl,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
+
+	req.Header.Set("User-Agent",
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36")
+
+	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("Error fetching %s: %v", url, err)
 		return nil
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("HTTP error fetching %s: %s", url, resp.Status)
+		return nil
+	}
+
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
 		log.Printf("Error parsing %s: %v", url, err)
 		return nil
 	}
+
 	return doc
 }
 
