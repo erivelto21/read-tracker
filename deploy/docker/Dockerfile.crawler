@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for nightcrawler
-# TODO: implement when nightcrawler source is ready
+# Builds the Go binary from nightcrawler/cmd/crawler and produces a small runtime image
 
 FROM golang:1.25-alpine AS builder
 RUN apk add --no-cache git
@@ -10,7 +10,7 @@ WORKDIR /src/nightcrawler
 RUN go mod download
 
 COPY nightcrawler/ /src/nightcrawler/
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w" -o /out/nightcrawler ./cmd/...
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags "-s -w" -o /out/nightcrawler ./cmd/crawler
 
 
 FROM alpine:3.18 AS runtime

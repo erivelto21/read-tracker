@@ -3,15 +3,16 @@ package main
 import (
 	"context"
 	"log/slog"
-	"nightcrawler/config"
-	"nightcrawler/crawler"
-	"nightcrawler/notification"
-	"nightcrawler/repository"
 	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
+
+	"github.com/erivelto/read-tracker/nightcrawler/config"
+	"github.com/erivelto/read-tracker/nightcrawler/crawler"
+	"github.com/erivelto/read-tracker/nightcrawler/notification"
+	"github.com/erivelto/read-tracker/nightcrawler/repository"
 )
 
 func main() {

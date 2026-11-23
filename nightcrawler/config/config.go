@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-// Config holds all environment-based configuration for the API server.
+// Config holds all environment-based configuration for the crawler.
 type Config struct {
 	MongoURI string
 	DBName   string
@@ -18,9 +18,6 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 	dbName, err := requireEnv("DB_NAME")
-	if err != nil {
-		return nil, err
-	}
 	if err != nil {
 		return nil, err
 	}

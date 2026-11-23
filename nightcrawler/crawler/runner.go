@@ -4,14 +4,15 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"nightcrawler/notification"
-	"nightcrawler/repository"
 	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/PuerkitoBio/goquery"
+
+	"github.com/erivelto/read-tracker/nightcrawler/notification"
+	"github.com/erivelto/read-tracker/nightcrawler/repository"
 )
 
 type Runner struct {

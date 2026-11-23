@@ -49,4 +49,5 @@ The single-VM deployment uses the same mechanism: secrets live in `deploy/compos
 
 - **No TLS.** Production serves HTTP with Basic Auth, matching the previous cluster deployment. Adding TLS later should be additive: a terminating proxy in front of nginx, with the published ports moved — not a restructure.
 - **No scheduled MongoDB backups.** The single VM is a total single point of failure.
-- **`nightcrawler` is not deployed.** It has source code but no schedule or Compose service yet.
+- **`nightcrawler` is not deployed.** It has a working image (`make build-crawler`) but no
+  schedule or Compose service yet.
