@@ -11,86 +11,103 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	"github.com/erivelto/read-tracker/nightcrawler/notification"
 	"github.com/erivelto/read-tracker/nightcrawler/repository"
 )
 
-type Runner struct {
-	Ctx                 context.Context
-	TitleRepository     *repository.MongoTitleRepository
-	NotificationGateway *notification.Gateway
+// TitleSource provides the titles to crawl.
+type TitleSource interface {
+	FindCrawlable(ctx context.Context) ([]repository.TrackedTitle, error)
 }
 
+// Notifier reports a chapter newer than the one the reader last reached.
+type Notifier interface {
+	Notify(titleName string, chapter float64)
+}
+
+// PageFetcher retrieves one page. It returns nil when the page cannot be fetched, which the
+// caller treats as "nothing to do" for that title.
+type PageFetcher func(url string) *goquery.Document
+
+type Runner struct {
+	Ctx      context.Context
+	Titles   TitleSource
+	Notifier Notifier
+	Fetch    PageFetcher
+}
+
+// Run crawls every crawlable title and notifies the ones that released something newer than the
+// reader's current chapter.
 func (r Runner) Run() {
-	sources := []source{
-		{name: "Swordmaster's Youngest Son", url: "", selector: ".font-medium.transition-colors.text-white.group-hover\\:text-\\[\\#913FE2\\]"},
-		{name: "The Hero Returns", url: "", selector: "#chapters-list li a"},
-	}
-	var wg sync.WaitGroup
-	ch := make(chan result, len(sources))
-
-	sem := make(chan struct{}, 10) // Max 10 concurrent requests
-	for _, s := range sources {
-		wg.Add(1)
-		go func(source source) {
-			sem <- struct{}{}
-			defer func() { <-sem }()
-			extractChapters(source, &wg, ch)
-		}(s)
-	}
-
-	// Wait for completion and close channel
-	wg.Wait()
-	close(ch)
-
-	chapterMap, err := r.TitleRepository.FetchChapterMap(r.Ctx)
+	titles, err := r.Titles.FindCrawlable(r.Ctx)
 	if err != nil {
-		log.Printf("fetch chapter map: %v", err)
+		log.Printf("fetch crawlable titles: %v", err)
 		return
 	}
 
-	// Collect and notify results
+	var wg sync.WaitGroup
+	ch := make(chan result, len(titles))
+
+	sem := make(chan struct{}, 10) // Max 10 concurrent requests
+	for _, t := range titles {
+		wg.Add(1)
+		go func(t repository.TrackedTitle) {
+			sem <- struct{}{}
+			defer func() { <-sem }()
+			extractChapters(t, r.Fetch, &wg, ch)
+		}(t)
+	}
+
+	wg.Wait()
+	close(ch)
+
 	for result := range ch {
-		last_release_ch := chapterMap[result.source.url]
-		if result.latestChapter() > last_release_ch {
-			r.NotificationGateway.Notify(result.source.name, result.latestChapter())
+		latest, ok := result.latestChapter()
+		if ok && latest > result.title.Chapter {
+			r.Notifier.Notify(result.title.Name, latest)
 		}
 	}
 }
 
 type result struct {
-	source   source
+	title    repository.TrackedTitle
 	chapters []float64
 }
 
-func (r result) latestChapter() float64 {
-	return r.chapters[0]
+// latestChapter returns the highest chapter found on the page. A page with no parseable chapter
+// has no latest chapter, which is reported rather than panicking on an empty slice.
+func (r result) latestChapter() (float64, bool) {
+	if len(r.chapters) == 0 {
+		return 0, false
+	}
+	latest := r.chapters[0]
+	for _, chapter := range r.chapters[1:] {
+		if chapter > latest {
+			latest = chapter
+		}
+	}
+	return latest, true
 }
 
-type source struct {
-	name     string
-	url      string
-	selector string
-}
-
-func extractChapters(source source, wg *sync.WaitGroup, ch chan<- result) {
+func extractChapters(title repository.TrackedTitle, fetch PageFetcher, wg *sync.WaitGroup, ch chan<- result) {
 	defer wg.Done()
-	page := fetchPage(source.url)
+	page := fetch(title.Link)
 	if page == nil {
 		return
 	}
 	chapters := []float64{}
-	page.Find(source.selector).Each(func(i int, s *goquery.Selection) {
+	page.Find(title.Selector).Each(func(_ int, s *goquery.Selection) {
 		text := strings.TrimSpace(s.Text())
-		chapter, boo := extractChapterNumber(text)
-		if boo {
+		chapter, ok := extractChapterNumber(text)
+		if ok {
 			chapters = append(chapters, chapter)
 		}
 	})
-	ch <- result{source: source, chapters: chapters}
+	ch <- result{title: title, chapters: chapters}
 }
 
-func fetchPage(url string) *goquery.Document {
+// FetchPage retrieves and parses a page. It returns nil on any failure, so one unreachable site
+// does not stop the run.
+func FetchPage(url string) *goquery.Document {
 	client := &http.Client{}
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)

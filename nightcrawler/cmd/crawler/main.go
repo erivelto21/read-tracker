@@ -46,6 +46,11 @@ func main() {
 	titlesCol := client.Database(cfg.DBName).Collection("titles")
 	titleRepo := repository.NewMongoTitleRepository(titlesCol)
 	notificationGateway := notification.Gateway{}
-	runner := crawler.Runner{Ctx: ctx, TitleRepository: titleRepo, NotificationGateway: &notificationGateway}
+	runner := crawler.Runner{
+		Ctx:      ctx,
+		Titles:   titleRepo,
+		Notifier: &notificationGateway,
+		Fetch:    crawler.FetchPage,
+	}
 	runner.Run()
 }
