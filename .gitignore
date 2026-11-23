@@ -34,3 +34,6 @@ front/playwright/.cache/
 front/public/mockServiceWorker.js
 front/.env.local
 front/.env.*.local
+
+# Crawler build output
+nightcrawler/bin/
