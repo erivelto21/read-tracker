@@ -16,7 +16,8 @@ This document provides instructions for AI coding agents working on this reposit
 
 ## Repository Management
 
-Treat all sub-repositories (e.g., `tracker`, `nightcrawler`, and `front`) as independent repositories.
+Treat all sub-repositories (e.g., `tracker` and `front`) as independent repositories.
+`nightcrawler/` is a plain directory in this repo, not a submodule.
 
 ### Scoped Changes
 
@@ -48,4 +49,4 @@ The single-VM deployment uses the same mechanism: secrets live in `deploy/compos
 
 - **No TLS.** Production serves HTTP with Basic Auth, matching the previous cluster deployment. Adding TLS later should be additive: a terminating proxy in front of nginx, with the published ports moved — not a restructure.
 - **No scheduled MongoDB backups.** The single VM is a total single point of failure.
-- **`nightcrawler` is not deployed.** It has no source code or working image yet.
+- **`nightcrawler` is not deployed.** It has source code but no schedule or Compose service yet.
