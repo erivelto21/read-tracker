@@ -9,14 +9,23 @@ A monorepo for tracking reading progress and fetching new chapters.
 - [ ] Create a terraform for the kubernets.
 - [ ] Create the GitLab as a Kubernetes resource.
 - [ ] Structure a pipeline for each workload.
-- [ ] Implement the crawler.
-- [ ] Transform Chapter *int into float64 at tracker.  
-- [ ] Includes the field "selector" string in the titles.
-- [ ] Transform the name in the link value, to make easily the access.
+- [x] Implement the crawler.
+- [x] Transform Chapter *int into float64 at tracker.
+- [x] Includes the field "selector" string in the titles.
+- [x] Transform the name in the link value, to make easily the access.
 - [ ] Implements the integration with discord.
-- [ ] Handle duplicated code between submodules.
-- [ ] Create test, readme, etc for tracker.
-- [ ] Transform crawler in a submodule.
+- [x] Create test, readme, etc for crawler.
+
+### Closed by decision
+
+- **Handle duplicated code between submodules** — the remaining duplication is
+  ~42 lines of boilerplate (`requireEnv`, the Mongo connect/ping/disconnect
+  block) between two independently versioned modules. Sharing it would need a
+  third module and a `replace` that stops the tracker from building on its own,
+  which is the point of it being a submodule. Left as is.
+- **Transform crawler in a submodule** — dropped. The crawler lives in this
+  repository as a plain directory; a separate submodule added a pin to maintain
+  without buying isolation.
 
 ## Workloads
 

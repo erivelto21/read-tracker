@@ -6,8 +6,16 @@ import (
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
+
+// TrackedTitle is the subset of a tracker title the crawler needs: where to look, what to look
+// for, and the chapter the reader last reached.
+type TrackedTitle struct {
+	Name     string  `bson:"name"`
+	Link     string  `bson:"link"`
+	Selector string  `bson:"selector"`
+	Chapter  float64 `bson:"chapter"`
+}
 
 type MongoTitleRepository struct {
 	collection *mongo.Collection
@@ -17,33 +25,25 @@ func NewMongoTitleRepository(col *mongo.Collection) *MongoTitleRepository {
 	return &MongoTitleRepository{collection: col}
 }
 
-type chapterRow struct {
-	Link    *string  `bson:"link,omitempty"`
-	Chapter *float64 `bson:"chapter"`
-}
+// crawlableTypes are the only title types with chapter releases. Books are read by page and
+// articles are a single URL, so neither has a chapter list to crawl.
+var crawlableTypes = []string{"manga", "manhua", "novel"}
 
-func (r *MongoTitleRepository) FetchChapterMap(ctx context.Context) (map[string]float64, error) {
-	opts := options.Find().SetProjection(bson.D{
-		{Key: "_id", Value: 0},
-		{Key: "link", Value: 1},
-		{Key: "chapter", Value: 1},
+// FindCrawlable returns the titles that have everything a crawl needs: a crawlable type, a link
+// to the chapter list, and a selector to read it with.
+func (r *MongoTitleRepository) FindCrawlable(ctx context.Context) ([]TrackedTitle, error) {
+	cursor, err := r.collection.Find(ctx, bson.M{
+		"type":     bson.M{"$in": crawlableTypes},
+		"link":     bson.M{"$exists": true, "$nin": []any{nil, ""}},
+		"selector": bson.M{"$exists": true, "$nin": []any{nil, ""}},
 	})
-
-	cursor, err := r.collection.Find(ctx, bson.D{}, opts)
 	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-
-	var rows []chapterRow
-	if err := cursor.All(ctx, &rows); err != nil {
-		return nil, fmt.Errorf("repository.FetchChapterMap: %w", err)
+		return nil, fmt.Errorf("repository.FindCrawlable: %w", err)
 	}
 
-	result := make(map[string]float64, len(rows))
-	for _, row := range rows {
-		result[*row.Link] = *row.Chapter
+	titles := make([]TrackedTitle, 0)
+	if err := cursor.All(ctx, &titles); err != nil {
+		return nil, fmt.Errorf("repository.FindCrawlable: %w", err)
 	}
-
-	return result, nil
+	return titles, nil
 }
