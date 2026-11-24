@@ -32,7 +32,7 @@ A monorepo for tracking reading progress and fetching new chapters.
 | Workload | Path | Description |
 |---|---|---|
 | **tracker** (API) | `tracker/` | Git submodule — Go REST API that saves and retrieves reading progress |
-| **nightcrawler** | `nightcrawler/` | Go crawler that fetches newly released chapters (plain directory, not a submodule) |
+| **nightcrawler** | `nightcrawler/` | Git submodule — Go crawler that fetches newly released chapters |
 | **front** | `front/` | Git submodule — frontend UI application |
 
 ## Project Structure
