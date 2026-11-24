@@ -16,8 +16,8 @@ This document provides instructions for AI coding agents working on this reposit
 
 ## Repository Management
 
-Treat all sub-repositories (e.g., `tracker` and `front`) as independent repositories.
-`nightcrawler/` is a plain directory in this repo, not a submodule.
+Treat all sub-repositories (e.g., `tracker`, `front`, and `nightcrawler`) as independent
+repositories.
 
 ### Scoped Changes
 
